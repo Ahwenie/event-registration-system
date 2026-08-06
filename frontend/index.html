@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration & Ticketing System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-ticket-alt"></i>
+                <span>EventHub</span>
+            </div>
+            <div class="nav-links">
+                <a href="#events">Events</a>
+                <a href="#register">Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Discover Amazing Tech Events Near You</h1>
+            <p>Register for workshops, summits, and bootcamps across the Motherland. 
+            <a href="#register" class="hero-btn"> 
+                <p><i class="fas fa-rocket"></i> Get Started
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <i class="fas fa-calendar-check"></i>
+                <span class="stat-number" id="eventCount">0</span>
+                <span class="stat-label">Events</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <span class="stat-number">1,200+</span>
+                <span class="stat-label">Registrations</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-globe-africa"></i>
+                <span class="stat-number">3</span>
+                <span class="stat-label">Cities</span>
+            </div>
+        </div>
+
+        <!-- Registration Section -->
+        <section id="register" class="registration-section">
+            <div class="section-header">
+                <h2><i class="fas fa-edit"></i> Register for an Event</h2>
+                <p>Secure your spot today. Limited seats available!</p>
+            </div>
+            
+            <form id="registrationForm" class="form-card">
+                <div class="form-group">
+                    <label for="fullName">
+                        <i class="fas fa-user"></i> Full Name
+                    </label>
+                    <input type="text" id="fullName" name="fullName" required 
+                           placeholder="Enter your full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="participant@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventSelect">
+                        <i class="fas fa-calendar-alt"></i> Select Event
+                    </label>
+                    <select id="eventSelect" name="eventId" required>
+                        <option value="">Loading events...</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-btn">
+                    <span class="btn-text">
+                        <i class="fas fa-paper-plane"></i> Register Now
+                    </span>
+                    <span class="btn-loader hidden">
+                        <i class="fas fa-circle-notch fa-spin"></i> Processing...
+                    </span>
+                </button>
+            </form>
+
+            <div id="messageBox" class="message-box hidden"></div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" class="events-section">
+            <div class="section-header">
+                <h2><i class="fas fa-star"></i> Available Events</h2>
+                <p>Browse our upcoming tech events and workshops</p>
+            </div>
+            
+            <div id="eventsList" class="events-grid">
+                <!-- Loading skeleton -->
+                <div class="skeleton-card">
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text short"></div>
+                    </div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text short"></div>
+                    </div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-text"></div>
+                        <div class="skeleton-text short"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-ticket-alt"></i>
+                <span>EventHub</span>
+            </div>
+            <p class="footer-desc">
+                A serverless event registration platform built with AWS Lambda, 
+                API Gateway, DynamoDB, and S3.
+            </p>
+            <div class="tech-stack">
+                <span><i class="fab fa-aws"></i> AWS</span>
+                <span><i class="fab fa-python"></i> Python</span>
+                <span><i class="fab fa-js"></i> JavaScript</span>
+            </div>
+            <p class="footer-copy">Built with ❤️ for Azubi Africa Capstone</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
