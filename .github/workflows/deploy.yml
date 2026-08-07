@@ -1,0 +1,114 @@
+name: Deploy Event Registration System
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-backend:
+    name: Deploy Lambda Functions
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout your code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      # Step 3: Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      # Step 4: Deploy getEvents function
+      - name: Package and Deploy getEvents
+        run: |
+          cd backend
+          mkdir -p package
+          pip install boto3 -t package/
+          cp lambda/get_events.py package/
+          cd package
+          zip -r ../get_events.zip .
+          cd ..
+          aws lambda update-function-code \
+            --function-name getEvents \
+            --zip-file fileb://get_events.zip
+      
+      # Step 5: Deploy getEvent function
+      - name: Package and Deploy getEvent
+        run: |
+          cd backend
+          mkdir -p package
+          pip install boto3 -t package/
+          cp lambda/get_event.py package/
+          cd package
+          zip -r ../get_event.zip .
+          cd ..
+          aws lambda update-function-code \
+            --function-name getEvent \
+            --zip-file fileb://get_event.zip
+      
+      # Step 6: Deploy createRegistration function
+      - name: Package and Deploy createRegistration
+        run: |
+          cd backend
+          mkdir -p package
+          pip install boto3 -t package/
+          cp lambda/create_registration.py package/
+          cd package
+          zip -r ../create_registration.zip .
+          cd ..
+          aws lambda update-function-code \
+            --function-name createRegistration \
+            --zip-file fileb://create_registration.zip
+      
+      # Step 7: Deploy createEvent function
+      - name: Package and Deploy createEvent
+        run: |
+          cd backend
+          mkdir -p package
+          pip install boto3 -t package/
+          cp lambda/create_event.py package/
+          cd package
+          zip -r ../create_event.zip .
+          cd ..
+          aws lambda update-function-code \
+            --function-name createEvent \
+            --zip-file fileb://create_event.zip
+
+  deploy-frontend:
+    name: Deploy Frontend to S3
+    runs-on: ubuntu-latest
+    needs: deploy-backend  # Wait for backend to finish first
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Deploy to S3
+        run: |
+          aws s3 sync frontend/ s3://event-registration-frontend-ksi-2k26 \
+            --delete \
+            --cache-control "max-age=0"
+      
+      - name: Verify Deployment
+        run: |
+          echo "Frontend deployed to:"
+          echo "http://event-registration-frontend-ksi-2k26.s3-website-us-east-1.amazonaws.com"
