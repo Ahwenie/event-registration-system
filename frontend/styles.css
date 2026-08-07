@@ -96,7 +96,7 @@ body {
 .hero {
     position: relative;
     height: 500px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #610ce1 50%, #06b6d4 100%);
+    background: linear-gradient(135deg, #5202a2 0%, #610ce1 50%, #06b6d4 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -123,7 +123,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.9));
+    background: linear-gradient(to bottom, rgba(30, 58, 138, 0.8), rgba(192, 15, 157, 0.9));
 }
 
 .hero-content {
