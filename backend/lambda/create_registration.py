@@ -1,13 +1,18 @@
 import json
-import boto3  # type: ignore[import]
+import boto3
 import uuid
 from datetime import datetime
 from decimal import Decimal
 
+# ============================================
+# SNS for email notifications
+# ============================================
 sns = boto3.client('sns', region_name='us-east-1')
-SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:943378954952:EventRegistrationNotifications:1125ac99-66f8-4030-a9ea-ba9d9278a5e0'
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')  # Change to your region
+# REPLACE THE NUMBER BELOW WITH YOUR ACTUAL AWS ACCOUNT ID
+SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:EventRegistrationNotifications'
+
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 events_table = dynamodb.Table('Events')
 registrations_table = dynamodb.Table('Registrations')
 
@@ -18,19 +23,13 @@ class DecimalEncoder(json.JSONEncoder):
         return super().default(obj)
 
 def lambda_handler(event, context):
-    """
-    POST /registrations
-    Body: {"eventId": "...", "email": "...", "fullName": "..."}
-    """
     try:
-        # Parse the JSON body from API Gateway
         body = json.loads(event.get('body', '{}'))
         
         event_id = body.get('eventId')
         email = body.get('email')
         full_name = body.get('fullName')
         
-        # Input validation
         if not all([event_id, email, full_name]):
             return {
                 'statusCode': 400,
@@ -38,7 +37,6 @@ def lambda_handler(event, context):
                 'body': json.dumps({'success': False, 'error': 'Missing required fields'})
             }
         
-        # Basic email validation
         if '@' not in email or '.' not in email.split('@')[-1]:
             return {
                 'statusCode': 400,
@@ -46,7 +44,6 @@ def lambda_handler(event, context):
                 'body': json.dumps({'success': False, 'error': 'Invalid email format'})
             }
         
-        # Step 1: Get current event to check availability
         event_response = events_table.get_item(Key={'eventId': event_id})
         event = event_response.get('Item')
         
@@ -61,22 +58,15 @@ def lambda_handler(event, context):
         
         if available_seats <= 0:
             return {
-                'statusCode': 409,  # 409 = Conflict
+                'statusCode': 409,
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({'success': False, 'error': 'Event is sold out'})
             }
         
-        # Step 2: Atomically update availableSeats and create registration
-        # We use ConditionExpression to prevent race conditions.
-        # If another user registered between our get_item and update_item,
-        # the condition fails and we retry.
-        
         registration_id = str(uuid.uuid4())
         registration_date = datetime.utcnow().isoformat() + 'Z'
         
-        # Transaction: Update event seats + Create registration
-        # If either fails, BOTH fail. This keeps data consistent.
-        dynamodb_client = boto3.client('dynamodb', region_name='us-east-1')  # Change to your region
+        dynamodb_client = boto3.client('dynamodb', region_name='us-east-1')
         
         try:
             dynamodb_client.transact_write_items(
@@ -110,7 +100,6 @@ def lambda_handler(event, context):
                                 'registrationDate': {'S': registration_date},
                                 'ticketStatus': {'S': 'Confirmed'}
                             },
-                            # Prevent duplicate registration from same email for same event
                             'ConditionExpression': 'attribute_not_exists(registrationId)'
                         }
                     }
@@ -122,7 +111,10 @@ def lambda_handler(event, context):
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps({'success': False, 'error': 'Registration failed. Event may be sold out. Please try again.'})
             }
-        # Send confirmation email
+        
+        # ============================================
+        # SEND EMAIL VIA SNS
+        # ============================================
         try:
             sns.publish(
                 TopicArn=SNS_TOPIC_ARN,
@@ -142,8 +134,7 @@ See you there!
         except Exception as e:
             print(f"Failed to send SNS notification: {e}")
             # Don't fail the registration if email fails
-
-        # Step 3: Update status if fully booked
+        
         updated_event = events_table.get_item(Key={'eventId': event_id})['Item']
         new_available = int(updated_event.get('availableSeats', 0))
         
@@ -156,7 +147,7 @@ See you there!
             )
         
         return {
-            'statusCode': 201,  # 201 = Created
+            'statusCode': 201,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
@@ -169,6 +160,7 @@ See you there!
                 'remainingSeats': new_available
             }, cls=DecimalEncoder)
         }
+        
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
@@ -182,4 +174,3 @@ See you there!
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': False, 'error': str(e)})
         }
-    
